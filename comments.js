@@ -1,63 +1,44 @@
-// create web server
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({ extended: true }));
+// Create web server
+// 1. Create a web server object
+// 2. Listen on a port
+// 3. Handle GET requests
+// 4. Handle POST requests
+// 5. Serve static files
+// 6. Create a 404 page
+// 7. Handle POST requests with JSON
 
-// create database connection
-var mysql = require('mysql');
-var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '123456789',
-    database: 'comments'
-});
-connection.connect();
+// 1. Create a web server object
+const express = require('express');
+const app = express();
 
-// create table if not exist
-var createTableSql = 'CREATE TABLE IF NOT EXISTS `comments` (' +
-    '`id` int(11) NOT NULL AUTO_INCREMENT,' +
-    '`name` varchar(255) NOT NULL,' +
-    '`content` text NOT NULL,' +
-    '`createdTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
-    'PRIMARY KEY (`id`)' +
-    ') ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
-connection.query(createTableSql, function (err) {
-    if (err) {
-        console.log('create table error: ' + err.message);
-    }
+// 2. Listen on a port
+const port = 3000;
+app.listen(port, () => console.log(`Listening on port ${port}`));
+
+// 3. Handle GET requests
+app.get('/', (req, res) => {
+    res.send('Hello World!');
 });
 
-// display comments
-app.get('/', function (req, res) {
-    var selectCommentsSql = 'SELECT * FROM comments';
-    connection.query(selectCommentsSql, function (err, rs) {
-        if (err) {
-            console.log('select comments error: ' + err.message);
-            return;
-        }
-        res.render('index.ejs', {
-            comments: rs
-        });
-    });
+// 4. Handle POST requests
+app.post('/', (req, res) => {
+    res.send('Got a POST request');
 });
 
-// add comments
-app.post('/add', function (req, res) {
-    // get name and content
-    var name = req.body.name;
-    var content = req.body.content;
-    var addCommentSql = 'INSERT INTO comments(name, content) VALUES(?, ?)';
-    connection.query(addCommentSql, [name, content], function (err) {
-        if (err) {
-            console.log('insert comment error: ' + err.message);
-            return;
-        }
-        // redirect to homepage
-        res.redirect('/');
-    });
+// 5. Serve static files
+app.use(express.static('public'));
+
+// 6. Create a 404 page
+app.use((req, res, next) => {
+    res.status(404).send('Sorry, page not found');
 });
 
-app.listen(3000, function () {
-    console.log('listening on port 3000');
+// 7. Handle POST requests with JSON
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
+
+app.post('/comments', (req, res) => {
+    const comment = req.body;
+    console.log(comment);
+    res.send(`${comment.author} said "${comment.text}"`);
 });
